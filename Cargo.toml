@@ -1,0 +1,11 @@
+[package]
+name = "simpledb"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+serde = "1.0.117"
+thiserror = "1.0"
+serial_test = "0.5.1"
+byteorder = "1.4.3"
+anyhow = "1.0.44"

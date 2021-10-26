@@ -1,13 +1,13 @@
 use crate::error::LogError;
-use anyhow::Error;
 use std::fmt::Debug;
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::io::SeekFrom;
 use std::io::{Read, Seek, Write};
 use std::path::Path;
 use crate::bytes::{
     U64_BYTES_LEN,
-    ReadBytes,
+    read_bytes_from_log,
+    read_u64_from_log
 };
 
 use crate::bytes;
@@ -25,7 +25,7 @@ pub struct Log<T: Read + Write + Seek> {
 
 impl Log<File> {
     pub fn open(path: &Path) -> std::io::Result<Self> {
-        let log = File::open(path)?;
+        let log = OpenOptions::new().read(true).write(true).open(&path)?;
         Ok(Log::<File> { log })
     }
 
@@ -80,7 +80,7 @@ impl<T: Read + Write + Seek> Log<T> {
         
         match self.log.read_exact(&mut op_len_buf) {
             Ok(()) => (),
-            Err(e) => return Err(LogError::EndReached.into())
+            Err(_) => return Err(LogError::EndReached.into())
         }
 
         let op = op_len_buf[U64_BYTES_LEN] as char;
@@ -101,8 +101,8 @@ impl<T: Read + Write + Seek> Log<T> {
     }
 
     fn read_instruction_from_log(&mut self) -> Vec<u8> {
-        let instruction_length = self.read_u64_from_log();
-        match self.read_bytes_from_log(instruction_length as usize) {
+        let instruction_length = read_u64_from_log(&mut self.log);
+        match read_bytes_from_log(&mut self.log, instruction_length) {
             Ok(bytes) => bytes,
             Err(e) => panic!("Unable to read instruction from log: {}", e)
         }
@@ -111,20 +111,6 @@ impl<T: Read + Write + Seek> Log<T> {
 
 }
 
-impl<T: Read + Write + Seek> ReadBytes for Log<T> {
-    fn read_bytes_from_log(&mut self, bytes_length: usize) -> std::io::Result<Vec<u8>> {
-        let mut buf: Vec<u8> = vec![0u8; bytes_length as usize];
-        self.log.read_exact(&mut buf)?;
-        Ok(buf)
-    }
-
-    fn read_u64_from_log(&mut self) -> u64 {
-        let mut len_buf = [0; U64_BYTES_LEN];
-        self.log.read_exact(&mut len_buf).expect("Failed reading u64 from log");
-
-        u64::from_be_bytes(len_buf)
-    }
-}
 
 #[cfg(test)]
 mod test {

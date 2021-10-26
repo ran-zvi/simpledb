@@ -20,5 +20,7 @@ where
         None => (),
     };
 
-    assert!(result.is_ok());
+    if let Err(err) = result {
+        panic::resume_unwind(err);
+    }
 }

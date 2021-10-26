@@ -3,6 +3,7 @@ mod error;
 mod test_utils;
 mod log;
 mod bytes;
+mod utils;
 
 use std::path::PathBuf;
 // use crate::db::SimpleDB;

@@ -12,9 +12,6 @@ pub enum DatabaseError {
     #[error("Database creation failed")]
     Initialization,
 
-    #[error("Key: {0} already exists in the Database")]
-    KeyAlreadyExists(String),
-
     #[error("Unable to acquire lock: {kind:?}, reason: {reason:?}")]
     Lock {
         kind: LockKind,
@@ -28,6 +25,9 @@ pub enum DatabaseError {
     #[error("Key: {0} doesn't exist in the Databse")]
     KeyNotFound(String),
 
+
+    #[error("Failed to load records from checkpoint")]
+    LoadCheckpoint,
 
     #[error(transparent)]
     Other(#[from] anyhow::Error)
